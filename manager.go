@@ -40,7 +40,7 @@ func NewManager() *Manager {
 
 func (m *Manager) setupEventHandlers() {
 	m.handlers[EventSendMessage] = func(e Event, c *Client) error {
-		fmt.Println(e)
+		fmt.Println(string(e.Payload))
 		return nil
 	}
 }

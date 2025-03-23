@@ -53,7 +53,11 @@ window.onload = function() {
         conn = new WebSocket("ws://" + document.location.host + "/ws");
 
         conn.onmessage = function(e) {
-            console.log(e);
+            const eventData = JSON.parse(e.data);
+
+            const event = Object.assign(new Event, eventData);
+
+            routeEvent(event);
         }
     } else {
         alert("Browser does not support websockets!");
