@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>A Chat Application</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <div class="center">
+            <h1>Chatty</h1>
+            <h3 id="chat-header">Currently in chat: general</h3>
+
+            <form id="chatroom-selection">
+                <label for="chatroom">Chatroom:</label>
+                <input type="text" id="chatroom" name="chatroom"><br><br>
+                <input type="submit" value="Change chatroom">
+            </form>
+
+            <br>
+
+            <textarea class="messagearea" id="chatmessages" readonly name="chatmessages" rows="4" cols="50" placeholder="Welcome to the chatroom!"></textarea>
+
+            <br>
+
+            <form id="chatroom-message">
+                <label for="message">Message: </label>
+                <input type="text" id="message" name="message"><br><br>
+                <input type="submit" value="Send message">
+            </form>
+        </div>
+
+        <script src="chatapp.js"></script>
+    </body>
+</html>
