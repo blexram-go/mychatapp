@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -15,19 +17,47 @@ var (
 	}
 )
 
+var (
+	ErrEventNotSupported = errors.New("this event type is not supported")
+)
+
 type Manager struct {
 	clients ClientList
 	sync.RWMutex
+
+	handlers map[string]EventHandler
 }
 
 func NewManager() *Manager {
-	return &Manager{
-		clients: make(ClientList),
+	m := &Manager{
+		clients:  make(ClientList),
+		handlers: make(map[string]EventHandler),
+	}
+
+	m.setupEventHandlers()
+	return m
+}
+
+func (m *Manager) setupEventHandlers() {
+	m.handlers[EventSendMessage] = func(e Event, c *Client) error {
+		fmt.Println(e)
+		return nil
+	}
+}
+
+func (m *Manager) routeEvent(event Event, c *Client) error {
+	if handler, ok := m.handlers[event.Type]; ok {
+		if err := handler(event, c); err != nil {
+			return err
+		}
+		return nil
+	} else {
+		return ErrEventNotSupported
 	}
 }
 
 func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
-	log.Println("new connection")
+	log.Println("New connection")
 
 	// Upgrade regular http connection into websocket
 	conn, err := websocketUpgrader.Upgrade(w, r, nil)
@@ -39,6 +69,10 @@ func (m *Manager) serveWS(w http.ResponseWriter, r *http.Request) {
 	client := NewClient(conn, m)
 
 	m.addClient(client)
+
+	// Start client processes
+	go client.readMessages()
+	go client.writeMessages()
 }
 
 func (m *Manager) addClient(client *Client) {
