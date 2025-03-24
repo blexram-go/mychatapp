@@ -7,6 +7,21 @@ class Event {
     }
 }
 
+class SendMessageEvent {
+    constructor(message, from) {
+        this.message = message;
+        this.from = from;
+    }
+}
+
+class NewMessageEvent {
+    constructor(message, from, sent) {
+        this.message = message;
+        this.from = from;
+        this.sent = sent;
+    }
+}
+
 function routeEvent(event) {
     if (event.type == undefined) {
         alert("no type field in the event");
@@ -14,12 +29,22 @@ function routeEvent(event) {
 
     switch (event.type) {
         case "new_message":
-            console.log("new message");
+            const messageEvent = Object.assign(new NewMessageEvent, event.payload)
+            appendChatMessage(messageEvent)
             break;
         default:
             alert("unsupported message type");
             break;
     }
+}
+
+function appendChatMessage(messageEvent) {
+    let date = new Date(messageEvent.sent);
+    const formattedMsg = `${date.toLocaleString()}: ${messageEvent.message}`;
+
+    textarea = document.getElementById("chatmessages");
+    textarea.innerHTML = textarea.innerHTML + "\n" + formattedMsg;
+    textarea.scrollTop = textarea.scrollHeight;
 }
 
 function sendEvent(eventName, payload) {
@@ -38,8 +63,10 @@ function changeChatRoom() {
 function sendMessage() {
     let newMessage = document.getElementById("message");
     if (newMessage != null) {
-        sendEvent("send_message", newMessage.value);
+        let outgoingEvent = new SendMessageEvent(newMessage.value, "brian");
+        sendEvent("send_message", outgoingEvent);
     }
+    newMessage.value = "";
     return false;
 }
 
@@ -62,7 +89,11 @@ function login() {
     }).then((data) => {
         // We are authenticated
         connectWebsocket(data.otp);
+
+        document.getElementById("username").value = '';
+        document.getElementById("password").value = '';
     }).catch((e) => { alert(e) });
+
     return false;
 }
 
