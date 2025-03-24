@@ -37,6 +37,9 @@ func (c *Client) readMessages() {
 		c.mgr.removeClient(c)
 	}()
 
+	// Set Max Size of Messages in Bytes
+	c.wsConn.SetReadLimit(512)
+
 	err := c.wsConn.SetReadDeadline(time.Now().Add(pongWait))
 	if err != nil {
 		log.Println(err)
