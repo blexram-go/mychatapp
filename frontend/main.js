@@ -43,15 +43,45 @@ function sendMessage() {
     return false;
 }
 
-window.onload = function() {
-    document.getElementById("chatroom-selection").onsubmit = changeChatRoom;
-    document.getElementById("chatroom-message").onsubmit = sendMessage;
+function login() {
+    let formData = {
+        "username": document.getElementById("username").value,
+        "password": document.getElementById("password").value
+    }
 
+    fetch("login", {
+        method: 'post',
+        body: JSON.stringify(formData),
+        mode: 'cors',
+    }).then((response) => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw 'unauthorized';
+        }
+    }).then((data) => {
+        // We are authenticated
+        connectWebsocket(data.otp);
+    }).catch((e) => { alert(e) });
+    return false;
+}
+
+function connectWebsocket(otp) {
     if (window["WebSocket"]) {
         console.log("supports websockets");
         // Connect to WS
-        conn = new WebSocket("ws://" + document.location.host + "/ws");
+        conn = new WebSocket("ws://" + document.location.host + "/ws?otp=" + otp);
 
+        // Onopen
+        conn.onopen = function(e) {
+            document.getElementById("connection-header").innerHTML = "Connected to Websocket: true";
+        }
+
+        // Onclose
+        conn.onclose = function(e) {
+            document.getElementById("connection-header").innerHTML = "Connected to Websocket: false";
+        }
+        
         conn.onmessage = function(e) {
             const eventData = JSON.parse(e.data);
 
@@ -63,3 +93,9 @@ window.onload = function() {
         alert("Browser does not support websockets!");
     }
 }
+
+window.onload = function() {
+    document.getElementById("chatroom-selection").onsubmit = changeChatRoom;
+    document.getElementById("chatroom-message").onsubmit = sendMessage;
+    document.getElementById("login-form").onsubmit = login;  
+};
